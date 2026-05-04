@@ -1,0 +1,67 @@
+import gradio as gr
+import requests
+
+API_KEY ="YOUR_API_KEY_HERE"
+
+SYSTEM_PROMPT = """
+You are a supportive mental health assistant.
+Be kind, empathetic, and helpful.
+Do not give medical diagnosis.
+Encourage healthy coping strategies.
+"""
+
+def chat(user_message, history):
+    try:
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "openai/gpt-4o-mini",
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_message}
+                ]
+            }
+        )
+
+        data = response.json()
+
+        if "choices" in data:
+            return data["choices"][0]["message"]["content"]
+        else:
+            return f"Error: {data}"
+
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+
+custom_css = """
+body {
+    background: linear-gradient(135deg, #f5f7ff, #eef2ff);
+    font-family: Arial;
+}
+.gradio-container {
+    max-width: 850px !important;
+    margin: auto !important;
+}
+h1 {
+    text-align: center;
+    color: #3b3b98;
+    font-size: 32px;
+}
+.description {
+    text-align: center;
+    color: #555;
+}
+"""
+
+demo = gr.ChatInterface(
+    fn=chat,
+    title="🧠 Mental Health AI Assistant",
+    description="A safe space to talk and feel supported 💙"
+)
+
+demo.launch()
